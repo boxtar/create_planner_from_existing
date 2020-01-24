@@ -1,19 +1,25 @@
 <!doctype html>
 <html>
+
 <head>
-    <title>Planner Adjustments</title>
+    <title>New Planner From Existing</title>
     <!-- <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet"> -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" type="text/css" href="./css/bulma.css">
     <link rel="stylesheet" type="text/css" href="./css/swal.min.css">
     <link rel="stylesheet" type="text/css" href="./css/style.css">
 </head>
+
 <body>
 
     <div class="container main">
 
-        <h1 class="title main-title has-text-centered">Post Award Adjustments</h1>
-    
+        <h1 class="title main-title has-text-centered">Create From Existing</h1>
+        <h6 class="subtitle has-text-centered">
+            Have you just manually created a sub-project? Is its budget coming from an exisiting sub-project? If so, use
+            the exisiting sub-project's planner budgets to create the planner budgets for your new sub-project with this
+            script.</h6>
+
         <div id="initialControls">
             <div id="file-error-status"></div>
             <!-- File Upload -->
@@ -36,18 +42,18 @@
                 </div>
             </div>
         </div>
-        
+
         <div id="app">
-        
+
             <div id="status"></div>
-            
+
             <div id="report"></div>
-        
+
             <div id="output"></div>
-            
+
         </div>
     </div>
-    
+
     <!-- Scripts -->
     <script type="text/javascript" src="./js/lib/swal2.min.js"></script>
     <script type="text/javascript" src="./js/lib/papaparse.min.js"></script>
@@ -57,4 +63,5 @@
     <script type="text/javascript" src="./js/main.js"></script>
 
 </body>
+
 </html>
