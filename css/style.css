@@ -1,0 +1,96 @@
+html,
+body {
+    /* font-family: 'Montserrat', sans-serif; */
+    background: white;
+}
+
+.container.main {
+    padding: 15px;
+}
+
+.title.main-title {
+    color: #0274af;
+}
+
+#initialControls {
+    text-align: center;
+}
+
+#initialControls .choose-file {
+    display: inline-block;
+}
+
+#initialControls .dropzone-container {
+    margin-top: 25px;
+}
+
+#initialControls .dropzone-container #drop_zone {
+    border: 2px dashed #209cee;
+    border-radius: 5px;
+    padding: 75px 25px;
+    text-align: center;
+    background-color: whitesmoke;
+}
+
+#initialControls .dropzone-container #drop_zone.hovering {
+    border-style: solid;
+    background-color: white;
+}
+
+.inputFile {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.inputFile + label {
+    font-size: 1.25em;
+    color: #fff;
+    background-color: #ce5340;
+    display: inline-block;
+    cursor: pointer;
+    padding: 0.8em 1.7em;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.inputFile:focus + label,
+.inputFile + label:hover {
+    background-color: #b24737;
+}
+
+.inputFile + label .inner {
+    display: flex;
+    align-items: center;
+}
+
+.table td,
+.table th {
+    vertical-align: middle;
+}
+
+.newBudgetInput {
+    padding: 0;
+}
+.newBudgetInput > input {
+    border: 0;
+    padding: 5px 10px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 16px;
+    background-color: yellow;
+    cursor: text;
+}
+
+.addBudgetContainer {
+    margin: 8px 0;
+}
+.addBudgetContainer > .select {
+    margin: 0 8px 0 0;
+}
+
+#output {
+    margin-top: 1.5rem;
+}
