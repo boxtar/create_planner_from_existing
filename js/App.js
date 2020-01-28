@@ -5,445 +5,465 @@
  * It will receive a store object from instantiator
  * and will control the displaying and updating of all
  * data.
- *
- * Imports:
- * import DataCollection from DataCollection.js
  */
+import DataCollection from "./DataCollection";
 
 class App {
-    /**
-     *
-     * @param {Object} store
-     */
-    constructor(store) {
-        // Shared store. Only give what is required to other components (Flux-like architecture)
-        this.store = store;
-        // Sub-project number
-        this.store.subProject = "";
-        // Description for each row - always the same
-        this.store.description = "";
-        // List of periods
-        this.store.periods = new Set();
-        // List of DataCollection's. Each collection holds a list of Resbuds
-        this.store.collections = [];
-        // FEC Income vs PRICE budget check
-        this.awardAmountCheck;
-    }
+   /**
+    *
+    * @param {Object} store
+    */
+   constructor(store) {
+      // Shared store. Only give what is required to other components (Flux-like architecture)
+      this.store = store;
+      // Sub-project number
+      this.store.subProject = "";
+      // Description for each row - always the same
+      this.store.description = "";
+      // List of periods
+      this.store.periods = new Set();
+      // List of DataCollection's. Each collection holds a list of Resbuds
+      this.store.collections = [];
+      // FEC Income vs PRICE budget check
+      this.awardAmountCheck;
+   }
 
-    /**
-     * Initialise App and setup Collections of Resbuds
-     *
-     * @param {Array} input
-     */
-    init(input) {
-        this.setSubProject(input[0][this.store.constants.SUB_PROJECT]);
-        this.setDescription(input[0][this.store.constants.DESCRIPTION]);
-        this.setPeriods(input);
-        this.initialiseCollections(input);
-    }
+   /**
+    * Initialise App and setup Collections of Resbuds
+    *
+    * @param {Array} input
+    */
+   init(input) {
+      this.setSubProject("");
+      this.setDescription(input[0][this.store.constants.DESCRIPTION]);
+      this.setPeriods(input);
+      this.initialiseCollections(input);
+   }
 
-    /**
-     * Initialise Collections of Resbud objects
-     *
-     * @param {Array} input - List of objects
-     */
-    initialiseCollections(input) {
-        // DataCollection temp 
-        let collection;
-        // PBFEC, PBPRICE
-        let collections = new Set();
+   /**
+    * Initialise Collections of Resbud objects
+    *
+    * @param {Array} input - List of objects
+    */
+   initialiseCollections(input) {
+      // DataCollection temp
+      let collection;
+      // PBFEC, PBPRICE
+      let collections = new Set();
 
-        // Get list of DataCollections to be created by parsing input for unique values in the TYPE column
-        input.forEach(record => collections.add(record[this.store.constants.TYPE]));
+      // Get list of DataCollections to be created by parsing input for unique values in the TYPE column
+      input.forEach(record =>
+         collections.add(record[this.store.constants.TYPE])
+      );
 
-        console.log(this)
-        
-        collections.forEach(name => {
-            collection = new DataCollection(name, {
-                ...this.store,
-                subProject: this.store.subProject,
-                description: this.store.description,
-                periods: [...this.store.periods],
-            });
-            collection.init(
-                input.filter(record => record[this.store.constants.TYPE] === collection.getType())
-            );
-            this.store.collections.push(collection);
-        });
-    }
+      collections.forEach(name => {
+         collection = new DataCollection(name, {
+            ...this.store,
+            subProject: () => this.getSubProject(),
+            description: this.store.description,
+            periods: [...this.store.periods]
+         });
+         collection.init(
+            input.filter(
+               record =>
+                  record[this.store.constants.TYPE] === collection.getType()
+            )
+         );
+         this.store.collections.push(collection);
+      });
+   }
 
-    /**
-     * Set the Sub Project
-     *
-     * @param {String} sp
-     */
-    setSubProject(sp) {
-        this.store.subProject = sp;
-    }
+   /**
+    * Set the Sub Project
+    *
+    * @param {String} sp
+    */
+   setSubProject(sp) {
+      this.store.subProject = sp;
+   }
 
-    /**
-     * Set the Description
-     *
-     * @param {String} desc
-     */
-    setDescription(desc) {
-        this.store.description = desc;
-    }
+   /**
+    * Returns the sub-project. Passed to Collections so they 
+    * can retrieve updated subproject.
+    */
+   getSubProject() {
+       return this.store.subProject;
+   }
 
-    /**
-     * Set the Periods
-     *
-     * @param {Array} input - Array of data to be scanned for unique period values
-     */
-    setPeriods(input) {
-        // Loop over all input records and add the period values to the Set.
-        // Using a set as they automatically strip out duplicate values.
-        input.forEach(record => this.store.periods.add(record[this.store.constants.PERIOD]));
-        // convert to array
-        this.store.periods = [...this.store.periods].sort();
-    }
+   /**
+    * Set the Description
+    *
+    * @param {String} desc
+    */
+   setDescription(desc) {
+      this.store.description = desc;
+   }
 
-    /**
-     * Returns array of DataCollection objects
-     */
-    getCollections() {
-        return this.store.collections;
-    }
+   /**
+    * Set the Periods
+    *
+    * @param {Array} input - Array of data to be scanned for unique period values
+    */
+   setPeriods(input) {
+      // Loop over all input records and add the period values to the Set.
+      // Using a set as they automatically strip out duplicate values.
+      input.forEach(record =>
+         this.store.periods.add(record[this.store.constants.PERIOD])
+      );
+      // convert to array
+      this.store.periods = [...this.store.periods].sort();
+   }
 
-    /**
-     * Use the size of the period list Set to get duration in months.
-     * Will be correct if at least one of the existing Resbuds contains
-     * amounts in all periods of the project.
-     */
-    getMonthlyDuration() {
-        return this.store.periods.length;
-    }
+   /**
+    * Returns array of DataCollection objects
+    */
+   getCollections() {
+      return this.store.collections;
+   }
 
-    isAwardOk() {
-        return this.awardAmountCheck > -1 && this.awardAmountCheck < 1;
-    }
+   /**
+    * Use the size of the period list Set to get duration in months.
+    * Will be correct if at least one of the existing Resbuds contains
+    * amounts in all periods of the project.
+    */
+   getMonthlyDuration() {
+      return this.store.periods.length;
+   }
 
-    /**
-     * Kick starts the process of calculating the amendment results
-     * Also downloads the results in .csv format
-     */
-    calculateResults() {
-        // Reset
-        this.awardAmountCheck = 0;
+   isAwardOk() {
+      return this.awardAmountCheck > -1 && this.awardAmountCheck < 1;
+   }
 
-        // Call upon each Collection to calculate amendment results
-        // and then add the award amount for each Collection onto
-        // the Apps overall award amount check.
-        this.getCollections().forEach(collection => {
-            collection.calculateResults();
-            this.awardAmountCheck += collection.newAwardAmount;
-        });
+   /**
+    * Kick starts the process of calculating the amendment results
+    * Also downloads the results in .csv format
+    */
+   calculateResults() {
+      // Reset
+      this.awardAmountCheck = 0;
 
-        // If award control check is ok, download results and return.
-        if (this.isAwardOk()) {
+      // Call upon each Collection to calculate amendment results
+      // and then add the award amount for each Collection onto
+      // the Apps overall award amount check.
+      this.getCollections().forEach(collection => {
+         collection.calculateResults();
+         this.awardAmountCheck += collection.newAwardAmount;
+      });
+
+      // If award control check is ok, download results and return.
+      if (this.isAwardOk()) {
+         this.downloadAndInformUser();
+         // this.buildResultsReport().scrollIntoView();
+         return;
+      }
+
+      // If above check never returned then warn user of award discrepancy.
+      this.warnUser();
+   }
+
+   // Show User success modal and download results.
+   downloadAndInformUser() {
+      if (this.exportResults()) {
+         Swal.fire(
+            "Downloading...",
+            "Your results will be in your Downloads folder.",
+            "success"
+         );
+      }
+   }
+
+   // Called when Income and Price budgets don't match.
+   // Informs User that there is a problem they need to sort.
+   warnUser() {
+      Swal.fire({
+         title: "Check your Income and Price Totals",
+         text:
+            "This message appears when the Income budget and Price budget totals don't match",
+         type: "warning",
+         showCancelButton: true,
+         confirmButtonColor: "#43a047",
+         cancelButtonColor: "#d33",
+         confirmButtonText: "They are fine!",
+         cancelButtonText: "Cancel so I can check!"
+      }).then(result => {
+         if (result.value) {
             this.downloadAndInformUser();
-            // this.buildResultsReport().scrollIntoView();
-            return;
-        }
+         }
+      });
+   }
 
-        // If above check never returned then warn user of award discrepancy.
-        this.warnUser();
-    }
+   /**
+    * Creates and injects Summary Report Element to DOM.
+    * This is where users input new budget amounts.
+    */
+   buildSummaryReport() {
+      // Get Parent element
+      let reportContainer = document.getElementById(
+         this.store.htmlHooks.REPORT
+      );
 
-    // Show User success modal and download results.
-    downloadAndInformUser() {
-        if (this.exportResults()) {
-            Swal.fire("Downloading...", "Your results will be in your Downloads folder.", "success");
-        }
-    }
+      // Re-used box element (gets re-assigned multiple times)
+      let box = this.store.utils.createElement("div", {
+         className: "box"
+      });
 
-    // Called when Income and Price budgets don't match.
-    // Informs User that there is a problem they need to sort.
-    warnUser() {
-        Swal.fire({
-            title: "Check your Income and Price Totals",
-            text: "This message appears when the Income budget and Price budget totals don't match",
-            type: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#43a047",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "They are fine!",
-            cancelButtonText: "Cancel so I can check!",
-        }).then(result => {
-            if (result.value) {
-                this.downloadAndInformUser();
-            }
-        });
-    }
+      // Add box to container
+      reportContainer.appendChild(box);
 
-    /**
-     * Creates and injects Summary Report Element to DOM.
-     * This is where users input new budget amounts.
-     */
-    buildSummaryReport() {
-        // Get Parent element
-        let reportContainer = document.getElementById(this.store.htmlHooks.REPORT);
+      // Add info notification
+      box.appendChild(
+         this.store.utils.createElement("div", {
+            innerHTML:
+               "Please check the below details. If anything is incorrect then see Johnpaul before proceeding.",
+            className: "notification is-info has-text-centered"
+         })
+      );
 
-        // Re-used box element (gets re-assigned multiple times)
-        let box = this.store.utils.createElement("div", {
-            className: "box",
-        });
+      // Add field to display sub-project
+      box.appendChild(this.buildSubProjectField());
 
-        // Add box to container
-        reportContainer.appendChild(box);
+      // Add field to display duration
+      box.appendChild(this.buildDurationField());
 
-        // Add info notification
-        box.appendChild(
-            this.store.utils.createElement("div", {
-                innerHTML:
-                    "Please check the below details. If anything is incorrect then see Johnpaul before proceeding.",
-                className: "notification is-info has-text-centered",
-            })
-        );
+      // Add field to display first period
+      box.appendChild(this.buildFirstPeriodField());
 
-        // Add field to display sub-project
-        box.appendChild(this.buildSubProjectField());
+      // Create a box for each Collection and append the result of
+      // calling eaching Collection's buildSummaryReport method.
+      this.store.collections.forEach(collection => {
+         box = this.store.utils.createElement("div", {
+            className: "box"
+         });
+         box.appendChild(collection.buildSummaryReport());
+         reportContainer.appendChild(box);
+      });
 
-        // Add field to display duration
-        box.appendChild(this.buildDurationField());
+      // New box for Fetch and Restart buttons
+      box = this.store.utils.createElement("div", {
+         className: "box"
+      });
 
-        // Add field to display first period
-        box.appendChild(this.buildFirstPeriodField());
+      // Add button with event for calculating results
+      box.appendChild(this.buildCalculateButton());
 
-        // Create a box for each Collection and append the result of
-        // calling eaching Collection's buildSummaryReport method.
-        this.store.collections.forEach(collection => {
-            box = this.store.utils.createElement("div", {
-                className: "box",
-            });
-            box.appendChild(collection.buildSummaryReport());
-            reportContainer.appendChild(box);
-        });
+      // Add page refresh button
+      box.appendChild(this.buildReloadButton());
 
-        // New box for Fetch and Restart buttons
-        box = this.store.utils.createElement("div", {
-            className: "box",
-        });
+      // Add fetch results box to container
+      reportContainer.appendChild(box);
+   }
 
-        // Add button with event for calculating results
-        box.appendChild(this.buildCalculateButton());
+   /**
+    * NOT IN USE
+    * Outputs another box with a table showing the results
+    */
+   buildResultsReport() {
+      // Get handle to results DOM node
+      let container = document.getElementById(this.store.htmlHooks.OUTPUT);
 
-        // Add page refresh button
-        box.appendChild(this.buildReloadButton());
+      // Box container
+      let box = this.store.utils.createElement("div", {
+         className: "box"
+      });
 
-        // Add fetch results box to container
-        reportContainer.appendChild(box);
-    }
+      // Clear all elements from container (start fresh)
+      this.store.utils.removeAllChildren(container);
 
-    /**
-     * NOT IN USE
-     * Outputs another box with a table showing the results
-     */
-    buildResultsReport() {
-        // Get handle to results DOM node
-        let container = document.getElementById(this.store.htmlHooks.OUTPUT);
+      // Add export button
+      box.appendChild(
+         this.store.utils.createElement("button", {
+            innerHTML: "Export Results",
+            className: "button is-info is-outlined",
+            onclick: () => this.exportResults()
+         })
+      );
 
-        // Box container
-        let box = this.store.utils.createElement("div", {
-            className: "box",
-        });
+      // Build out results for each Collection
+      this.getCollections().forEach(collection =>
+         box.appendChild(collection.buildResultsReport())
+      );
 
-        // Clear all elements from container (start fresh)
-        this.store.utils.removeAllChildren(container);
+      container.appendChild(box);
 
-        // Add export button
-        box.appendChild(
-            this.store.utils.createElement("button", {
-                innerHTML: "Export Results",
-                className: "button is-info is-outlined",
-                onclick: () => this.exportResults(),
-            })
-        );
+      return container;
+   }
 
-        // Build out results for each Collection
-        this.getCollections().forEach(collection => box.appendChild(collection.buildResultsReport()));
+   /**
+    * Returns DOM Element containing sub-project number
+    *
+    * @return {Element}
+    */
+   buildSubProjectField() {
+      return this.buildFormElement(
+         "Sub Project", // Label text
+         e => this.handleSubProjectChange(e),
+         {
+            type: "text", // Input type
+            value: this.store.subProject, // Input value
+         }
+      );
+   }
 
-        container.appendChild(box);
+   /**
+    * Returns DOM Element containing duration in months
+    *
+    * @return {Element}
+    */
+   buildDurationField() {
+      return this.buildFormElement(
+         "Duration", // Label text
+         () => this.handleDurationChange(), // onchange handler
+         {
+            type: "number", // Input type
+            value: this.getMonthlyDuration(), // Input value
+            disabled: "disabled"
+         }
+      );
+   }
 
-        return container;
-    }
+   /**
+    * Returns DOM Element containing the first period
+    *
+    * @return {Element}
+    */
+   buildFirstPeriodField() {
+      return this.buildFormElement(
+         "First Period", // Label text
+         () => this.handleFirstPeriodChange(), // onchange handler
+         {
+            type: "number", // Input type
+            value: [...this.store.periods][0], // Input value
+            disabled: "disabled"
+         }
+      );
+   }
 
-    /**
-     * Returns DOM Element containing sub-project number
-     *
-     * @return {Element}
-     */
-    buildSubProjectField() {
-        return this.buildFormElement(
-            "Sub-project", // Label text
-            null, // onchange handler (no change events expected)
-            {
-                type: "text", // Input type
-                value: this.store.subProject, // Input value
-                disabled: "disabled",
-            }
-        );
-    }
+   buildFormElement(labelText, handler, inputOptions) {
+      // Container element
+      let container = this.store.utils.createElement("div", {
+         className: "field is-horizontal"
+      });
+      // Label element
+      let label = this.buildLabel(labelText); // VARIABLE
+      // Input container element
+      let inputContainer = this.buildInputContainer();
+      // Input element (need this to attached event handler)
+      let input = this.buildInput(inputOptions);
+      // Add input element to the input container
+      inputContainer.appendChild(input);
+      // Attach event handler to input element
+      if (handler !== null) input.onkeyup = handler;
+      //Attach the label and input container elements
+      container.appendChild(label);
+      container.appendChild(inputContainer);
+      return container;
+   }
 
-    /**
-     * Returns DOM Element containing duration in months
-     *
-     * @return {Element}
-     */
-    buildDurationField() {
-        return this.buildFormElement(
-            "Duration", // Label text
-            () => this.handleDurationChange(), // onchange handler
-            {
-                type: "number", // Input type
-                value: this.getMonthlyDuration(), // Input value
-                disabled: "disabled",
-            }
-        );
-    }
+   buildLabel(labelText) {
+      return this.store.utils.createElement("div", {
+         className: "field-label is-normal",
+         innerHTML: `<label class="label">${labelText}</label>`
+      });
+   }
 
-    /**
-     * Returns DOM Element containing the first period
-     *
-     * @return {Element}
-     */
-    buildFirstPeriodField() {
-        return this.buildFormElement(
-            "First Period", // Label text
-            () => this.handleFirstPeriodChange(), // onchange handler
-            {
-                type: "number", // Input type
-                value: [...this.store.periods][0], // Input value
-                disabled: "disabled",
-            }
-        );
-    }
+   buildInput(options = {}) {
+      let input = this.store.utils.createElement("input", {
+         className: "input"
+      });
+      Object.keys(options).forEach(key => {
+         if (key === "className") input.className += ` ${options.className}`;
+         else input[key] = options[key];
+      });
+      return input;
+   }
 
-    buildFormElement(labelText, handler, inputOptions) {
-        // Container element
-        let container = this.store.utils.createElement("div", {
-            className: "field is-horizontal",
-        });
-        // Label element
-        let label = this.buildLabel(labelText); // VARIABLE
-        // Input container element
-        let inputContainer = this.buildInputContainer();
-        // Input element (need this to attached event handler)
-        let input = this.buildInput(inputOptions);
-        // Add input element to the input container
-        inputContainer.appendChild(input);
-        // Attach event handler to input element
-        if (handler !== null) input.onchange = handler;
-        //Attach the label and input container elements
-        container.appendChild(label);
-        container.appendChild(inputContainer);
-        return container;
-    }
+   buildInputContainer() {
+      let container = this.store.utils.createElement("div", {
+         className: "field-body"
+      });
+      container.appendChild(
+         this.store.utils.createElement("div", {
+            className: "field"
+         })
+      );
+      container.appendChild(
+         this.store.utils.createElement("div", {
+            className: "control"
+         })
+      );
+      return container;
+   }
 
-    buildLabel(labelText) {
-        return this.store.utils.createElement("div", {
-            className: "field-label is-normal",
-            innerHTML: `<label class="label">${labelText}</label>`,
-        });
-    }
+   handleSubProjectChange(e) {
+      this.setSubProject(e.target.value);
+   }
 
-    buildInput(options = {}) {
-        let input = this.store.utils.createElement("input", {
-            className: "input",
-        });
-        Object.keys(options).forEach(key => {
-            if (key === "className") input.className += ` ${options.className}`;
-            else input[key] = options[key];
-        });
-        return input;
-    }
+   handleDurationChange() {
+      console.log(this.getMonthlyDuration());
+   }
 
-    buildInputContainer() {
-        let container = this.store.utils.createElement("div", {
-            className: "field-body",
-        });
-        container.appendChild(
-            this.store.utils.createElement("div", {
-                className: "field",
-            })
-        );
-        container.appendChild(
-            this.store.utils.createElement("div", {
-                className: "control",
-            })
-        );
-        return container;
-    }
+   handleFirstPeriodChange() {
+      console.log([...this.store.periods][0]);
+   }
 
-    handleSubProjectChange() {
+   buildReloadButton() {
+      let button = this.store.utils.createElement("button", {
+         innerHTML: "Restart",
+         className: "button is-danger is-outlined"
+      });
+      button.onclick = e => location.reload();
+      return button;
+   }
 
-    }
+   buildCalculateButton() {
+      // Add button with event for calculating results
+      let button = this.store.utils.createElement("button", {
+         innerHTML: "Fetch Results",
+         id: "get-results-button",
+         className: "button is-info",
+         style: "margin-right: 8px"
+      });
+      button.onclick = () => this.calculateResults();
+      return button;
+   }
 
-    handleDurationChange() {
-        console.log(this.getMonthlyDuration());
-    }
+   exportResults() {
+      let csvString = "data:text/csv;charset=utf-8,";
+      let exportData = [];
+      exportData.push(
+         [
+            this.store.constants.TYPE,
+            this.store.constants.RESBUD,
+            this.store.constants.RESBUD + " (T)",
+            this.store.constants.SUB_PROJECT,
+            this.store.constants.GBP_AMOUNT,
+            this.store.constants.PERIOD,
+            this.store.constants.DESCRIPTION
+         ].join(",")
+      );
 
-    handleFirstPeriodChange() {
-        console.log([...this.store.periods][0]);
-    }
+      this.getCollections().forEach(collection => {
+         collection.exportData().forEach(resbudData => {
+            resbudData.forEach(row => exportData.push(row.join(",")));
+         });
+      });
 
-    buildReloadButton() {
-        let button = this.store.utils.createElement("button", {
-            innerHTML: "Restart",
-            className: "button is-danger is-outlined",
-        });
-        button.onclick = e => location.reload();
-        return button;
-    }
-
-    buildCalculateButton() {
-        // Add button with event for calculating results
-        let button = this.store.utils.createElement("button", {
-            innerHTML: "Fetch Results",
-            id: "get-results-button",
-            className: "button is-info",
-            style: "margin-right: 8px",
-        });
-        button.onclick = () => this.calculateResults();
-        return button;
-    }
-
-    exportResults() {
-        let csvString = "data:text/csv;charset=utf-8,";
-        let exportData = [];
-        exportData.push(
-            [
-                this.store.constants.TYPE,
-                this.store.constants.RESBUD,
-                this.store.constants.RESBUD + " (T)",
-                this.store.constants.SUB_PROJECT,
-                this.store.constants.GBP_AMOUNT,
-                this.store.constants.PERIOD,
-                this.store.constants.DESCRIPTION,
-            ].join(",")
-        );
-
-        this.getCollections().forEach(collection => {
-            collection.exportData().forEach(resbudData => {
-                resbudData.forEach(row => exportData.push(row.join(",")));
-            });
-        });
-
-        // Build up csv data and make browser download it as a file
-        // But only if there is data to export (exportData will be at least 1 in length due to heading).
-        if (exportData.length > 1) {
-            exportData.forEach(row => (csvString += `${row}\r\n`));
-            let link = this.store.utils.createElement("a", {
-                href: encodeURI(csvString),
-                download: `${this.store.subProject}_export.csv`,
-                innerHTML: "Download",
-                style: "display: none",
-            });
-            document.body.appendChild(link);
-            link.click();
-            return true;
-        }
-        Swal.fire("No Changes", "Nothing appears to have changed...", "warning");
-        return false;
-    }
+      // Build up csv data and make browser download it as a file
+      // But only if there is data to export (exportData will be at least 1 in length due to heading).
+      if (exportData.length > 1) {
+         exportData.forEach(row => (csvString += `${row}\r\n`));
+         let link = this.store.utils.createElement("a", {
+            href: encodeURI(csvString),
+            download: `${this.store.subProject}_export.csv`,
+            innerHTML: "Download",
+            style: "display: none"
+         });
+         document.body.appendChild(link);
+         link.click();
+         return true;
+      }
+      Swal.fire("No Changes", "Nothing appears to have changed...", "warning");
+      return false;
+   }
 }
+export default App;

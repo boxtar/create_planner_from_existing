@@ -1,0 +1,25 @@
+{
+    "name": "create_from_existing",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "watch": "webpack --mode development --watch",
+        "build": "webpack --mode production"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/boxtar/create_planner_from_existing.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/boxtar/create_planner_from_existing/issues"
+    },
+    "homepage": "https://github.com/boxtar/create_planner_from_existing#readme",
+    "dependencies": {
+        "webpack": "^4.41.5",
+        "webpack-cli": "^3.3.10"
+    }
+}
