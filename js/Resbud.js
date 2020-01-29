@@ -160,7 +160,7 @@ class Resbud {
                this.store.subProject(),
                this.amendmentData[i],
                this.periods[i],
-               this.store.description
+               this.store.description()
             ]);
          }
       }

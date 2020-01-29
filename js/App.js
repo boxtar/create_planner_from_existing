@@ -60,7 +60,7 @@ class App {
          collection = new DataCollection(name, {
             ...this.store,
             subProject: () => this.getSubProject(),
-            description: this.store.description,
+            description: () => this.getDescription(),
             periods: [...this.store.periods]
          });
          collection.init(
@@ -83,11 +83,11 @@ class App {
    }
 
    /**
-    * Returns the sub-project. Passed to Collections so they 
+    * Returns the sub-project. Passed to Collections so they
     * can retrieve updated subproject.
     */
    getSubProject() {
-       return this.store.subProject;
+      return this.store.subProject;
    }
 
    /**
@@ -97,6 +97,10 @@ class App {
     */
    setDescription(desc) {
       this.store.description = desc;
+   }
+
+   getDescription() {
+      return this.store.description;
    }
 
    /**
@@ -139,6 +143,14 @@ class App {
     * Also downloads the results in .csv format
     */
    calculateResults() {
+      if (!this.getSubProject() || !this.getDescription()) {
+         Swal.fire(
+            "Oops...",
+            "Please check you have entered a Sub Project and Description.",
+            "error"
+         );
+         return;
+      }
       // Reset
       this.awardAmountCheck = 0;
 
@@ -222,6 +234,9 @@ class App {
       // Add field to display sub-project
       box.appendChild(this.buildSubProjectField());
 
+      // Add field to display description
+      box.appendChild(this.buildDescriptionField());
+
       // Add field to display duration
       box.appendChild(this.buildDurationField());
 
@@ -299,7 +314,23 @@ class App {
          e => this.handleSubProjectChange(e),
          {
             type: "text", // Input type
-            value: this.store.subProject, // Input value
+            value: this.store.subProject // Input value
+         }
+      );
+   }
+
+   /**
+    * Returns DOM Element containing description to be used when posting to planner
+    *
+    * @return {Element}
+    */
+   buildDescriptionField() {
+      return this.buildFormElement(
+         "Description", // Label text
+         e => this.handleDescriptionChange(e),
+         {
+            type: "text", // Input type
+            value: this.store.description // Input value
          }
       );
    }
@@ -396,6 +427,10 @@ class App {
 
    handleSubProjectChange(e) {
       this.setSubProject(e.target.value);
+   }
+
+   handleDescriptionChange(e) {
+      this.setDescription(e.target.value);
    }
 
    handleDurationChange() {
